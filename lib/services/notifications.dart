@@ -66,7 +66,7 @@ class NotificationService with ChangeNotifier {
       tz.TZDateTime.now(tz.local).add(
         Duration(
           hours: hours,
-          minutes: minutes + 1,
+          minutes: minutes,
           days: days,
         ),
       ),

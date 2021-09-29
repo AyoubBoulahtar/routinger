@@ -88,7 +88,7 @@ class _TaskFormState extends State<TaskForm> {
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2050),
-    ) as DateTime;
+    );
     if (pickedDate != null && pickedDate != currentDate)
       setState(() {
         currentDate = pickedDate;
@@ -102,7 +102,10 @@ class _TaskFormState extends State<TaskForm> {
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
-    ) as TimeOfDay;
+    );
+    final tempDate = DateTime.now();
+    currentDate = tempDate
+        .subtract(Duration(hours: tempDate.hour, minutes: tempDate.minute));
     if (pickedTime != null)
       setState(() {
         currentDate = currentDate.add(
@@ -110,7 +113,7 @@ class _TaskFormState extends State<TaskForm> {
         );
         currentTime =
             TimeOfDay(hour: currentDate.hour, minute: currentDate.minute);
-        _timeController.text = '${pickedTime.hour}:${pickedTime.minute}';
+        _timeController.text = pickedTime.toString().substring(10, 15);
       });
   }
 
@@ -265,8 +268,39 @@ class _TaskFormState extends State<TaskForm> {
                                         labelText: 'Task Time',
                                       ),
                                       validator: (value) {
+                                        final days = currentDate.day -
+                                            DateTime.now().day;
+                                        final hours = currentDate.hour -
+                                            DateTime.now().hour;
+                                        final minutes = currentDate.minute -
+                                            DateTime.now().minute;
+                                        final DateFormat formatter =
+                                            DateFormat('yyyy-MM-dd');
+                                        final DateTime now = DateTime.now();
+                                        final String nowFormatted =
+                                            formatter.format(now);
+                                        final currentDateFormatted =
+                                            formatter.format(currentDate);
                                         if (value!.isEmpty) {
                                           return 'Please enter a time for your task';
+                                        } else if (value ==
+                                                TimeOfDay.now()
+                                                    .toString()
+                                                    .substring(10, 15) &&
+                                            currentDateFormatted ==
+                                                nowFormatted) {
+                                          return 'You cannot select the current time';
+                                        }
+                                        if (days < 0) {
+                                          return 'Please provide a valid time';
+                                        }
+                                        if (days == 0 && hours < 0) {
+                                          return 'Please provide a valid time';
+                                        }
+                                        if (days == 0 &&
+                                            hours == 0 &&
+                                            minutes < 0) {
+                                          return 'Please provide a valid time';
                                         }
                                         return null;
                                       },
@@ -351,16 +385,6 @@ class _TaskFormState extends State<TaskForm> {
                     final days = currentDate.day - DateTime.now().day;
                     final hours = currentDate.hour - DateTime.now().hour;
                     final minutes = currentDate.minute - DateTime.now().minute;
-
-                    if (days < 0) {
-                      return;
-                    }
-                    if (days == 0 && hours < 0) {
-                      return;
-                    }
-                    if (days == 0 && hours == 0 && minutes < 0) {
-                      return;
-                    }
                     Provider.of<Tasks>(context, listen: false).addScheduled(
                         intChosen, _titleController.text, currentDate, '',
                         difficultyOfTask: difficultyDropDownValue);
